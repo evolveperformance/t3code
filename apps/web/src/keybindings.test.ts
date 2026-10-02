@@ -977,6 +977,28 @@ describe("resolveShortcutCommand", () => {
     );
   });
 
+  it("leaves mod plus a zoom character to zoom on layouts that type it elsewhere", () => {
+    const keybindings = compile([
+      { shortcut: modShortcut("]"), command: "navigation.forward" },
+      {
+        shortcut: modShortcut("+"),
+        command: "preview.zoomIn",
+        whenAst: whenIdentifier("previewFocus"),
+      },
+    ]);
+    // German layouts type "+" on the key US layouts label "]".
+    const germanPlus = event({ key: "+", code: "BracketRight", ctrlKey: true });
+
+    assert.isNull(resolveShortcutCommand(germanPlus, keybindings, { platform: "Win32" }));
+    assert.strictEqual(
+      resolveShortcutCommand(germanPlus, keybindings, {
+        platform: "Win32",
+        context: { previewFocus: true },
+      }),
+      "preview.zoomIn",
+    );
+  });
+
   it("does not let a punctuation position shadow a Latin layout key", () => {
     const keybindings = compile([
       { shortcut: modShortcut("m"), command: "diff.toggle" },
