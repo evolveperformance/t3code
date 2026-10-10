@@ -492,15 +492,17 @@ describe("authenticated environment HTTP requests", () => {
     }),
   );
 
-  it.effect("does not re-sign when an older server omits its time", () =>
+  it.effect("neither re-signs nor renews when an older server omits its time", () =>
     Effect.gen(function* () {
       const harness = makeHarness(() => clockRejectedResponse());
-      yield* PullRequestDiffLoader.fetchEnvironmentPullRequestDiff({
+      const error = yield* PullRequestDiffLoader.fetchEnvironmentPullRequestDiff({
         ...harness.input,
         diff: DIFF,
       }).pipe(Effect.provide(harness.httpLayer), Effect.flip);
 
-      expect(harness.proofs.map((proof) => proof.issuedAtSeconds)).toEqual([undefined, undefined]);
+      expect(error).toMatchObject({ traceId: "trace-clock" });
+      expect(harness.calls).toHaveLength(1);
+      expect(harness.authorizations).toHaveLength(1);
     }),
   );
 

@@ -221,7 +221,9 @@ const executeEnvironmentRequest = Effect.fnUntraced(function* <
           authorization?._tag === "Dpop" &&
           rejectedAccessToken === undefined &&
           result.failure._tag === "EnvironmentAuthInvalidError" &&
-          result.failure.reason === "invalid_credential"
+          result.failure.reason === "invalid_credential" &&
+          // Older servers report clock skew without their time; a new token cannot fix that.
+          result.failure.dpopFailureReason !== "time_window"
         ) {
           rejectedAccessToken = authorization.accessToken;
           continue;
